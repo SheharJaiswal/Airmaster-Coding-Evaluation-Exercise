@@ -1,0 +1,194 @@
+﻿{
+	"Routes": [
+		{
+			"DownstreamPathTemplate": "/api/Products",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/productService/api/products",
+			"UpstreamHttpMethod": [ "GET", "POST" ],
+			"ServiceName": "product-service",
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Products/{id}",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/productService/api/products/{id}",
+			"UpstreamHttpMethod": [ "GET", "PUT", "DELETE" ],
+			"ServiceName": "product-service",
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Auth/login",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/userService/api/auth/login",
+			"UpstreamHttpMethod": [ "POST" ],
+			"ServiceName": "user-service",
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Auth/register",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/userService/api/auth/register",
+			"UpstreamHttpMethod": [ "POST" ],
+			"ServiceName": "user-service",
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Auth/profile",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/userService/api/auth/profile",
+			"UpstreamHttpMethod": [ "GET" ],
+			"AuthenticationOptions": {
+				"AuthenticationProviderKey": "Bearer"
+			},
+			"ServiceName": "user-service",
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Carts/{userId}",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/cartService/api/carts/{userId}",
+			"UpstreamHttpMethod": [ "GET", "DELETE" ],
+			"ServiceName": "cart-service",
+			"AuthenticationOptions": {
+				"AuthenticationProviderKey": "Bearer"
+			},
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Carts/{userId}/items",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/cartService/api/carts/{userId}/items",
+			"UpstreamHttpMethod": [ "POST" ],
+			"ServiceName": "cart-service",
+			"AuthenticationOptions": {
+				"AuthenticationProviderKey": "Bearer"
+			},
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Carts/{userId}/items/{productId}",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/cartService/api/carts/{userId}/items/{productId}",
+			"UpstreamHttpMethod": [ "DELETE", "PUT" ],
+			"ServiceName": "cart-service",
+			"AuthenticationOptions": {
+				"AuthenticationProviderKey": "Bearer"
+			},
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Order/{cartId}",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/orderService/api/order/{cartId}",
+			"UpstreamHttpMethod": [ "POST" ],
+			"ServiceName": "order-service",
+			"AuthenticationOptions": {
+				"AuthenticationProviderKey": "Bearer"
+			},
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Order/{orderId}",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/orderService/api/order/{orderId}",
+			"UpstreamHttpMethod": [ "GET" ],
+			"ServiceName": "order-service",
+			"AuthenticationOptions": {
+				"AuthenticationProviderKey": "Bearer"
+			},
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Order/tracking/{trackingNumber}",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/orderService/api/order/tracking/{trackingNumber}",
+			"UpstreamHttpMethod": [ "GET" ],
+			"ServiceName": "order-service",
+			"AuthenticationOptions": {
+				"AuthenticationProviderKey": "Bearer"
+			},
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Order/shipment/{trackingNumber}",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/orderService/api/order/shipment/{trackingNumber}",
+			"UpstreamHttpMethod": [ "DELETE" ],
+			"ServiceName": "order-service",
+			"AuthenticationOptions": {
+				"AuthenticationProviderKey": "Bearer"
+			},
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Payment/process",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/paymentService/api/payment/process",
+			"UpstreamHttpMethod": [ "POST" ],
+			"ServiceName": "payment-service",
+			"AuthenticationOptions": {
+				"AuthenticationProviderKey": "Bearer"
+			},
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Payment/refund/{paymentId}",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/paymentService/api/payment/refund/{paymentId}",
+			"UpstreamHttpMethod": [ "POST" ],
+			"ServiceName": "payment-service",
+			"AuthenticationOptions": {
+				"AuthenticationProviderKey": "Bearer"
+			},
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		},
+		{
+			"DownstreamPathTemplate": "/api/Payment/order/{orderId}",
+			"DownstreamScheme": "http",
+			"UpstreamPathTemplate": "/paymentService/api/payment/order/{orderId}",
+			"UpstreamHttpMethod": [ "GET" ],
+			"ServiceName": "payment-service",
+			"AuthenticationOptions": {
+				"AuthenticationProviderKey": "Bearer"
+			},
+			"LoadBalancerOptions": {
+				"Type": "RoundRobin"
+			}
+		}
+	],
+	"GlobalConfiguration": {
+		"ServiceDiscoveryProvider": {
+			"Type": "Eureka",
+			"Host": "eureka-server",
+			"Port": 8761
+		}
+	}
+}

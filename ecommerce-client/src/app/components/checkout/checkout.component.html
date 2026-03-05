@@ -1,0 +1,175 @@
+<div class="checkout-container">
+  <h1 class="page-title">Checkout</h1>
+
+  @if (cart$ | async; as cart) {
+    @if (cart) {
+    <div class="checkout-content">
+      <div class="checkout-form">
+        <!-- Shipping Information -->
+        <div class="form-section">
+          <h2>Shipping Information</h2>
+          <div class="form-group">
+            <label>Street Address</label>
+            <input
+              type="text"
+              [(ngModel)]="shippingAddress.street"
+              placeholder="123 Main St"
+              required
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>City</label>
+              <input
+                type="text"
+                [(ngModel)]="shippingAddress.city"
+                placeholder="New York"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>State</label>
+              <input
+                type="text"
+                [(ngModel)]="shippingAddress.state"
+                placeholder="NY"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>ZIP Code</label>
+              <input
+                type="text"
+                [(ngModel)]="shippingAddress.zipCode"
+                placeholder="10001"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Country</label>
+              <input
+                type="text"
+                [(ngModel)]="shippingAddress.country"
+                placeholder="USA"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Information -->
+        <div class="form-section">
+          <h2>Payment Information</h2>
+          <p class="payment-note">Note: This is a prototype. Use test data only.</p>
+
+          <div class="form-group">
+            <label>Cardholder Name</label>
+            <input
+              type="text"
+              [(ngModel)]="cardholderName"
+              placeholder="John Doe"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Card Number</label>
+            <input
+              type="text"
+              [(ngModel)]="cardNumber"
+              placeholder="4242 4242 4242 4242"
+              maxlength="19"
+              required
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Expiry Date</label>
+              <input
+                type="text"
+                [(ngModel)]="cardExpiry"
+                placeholder="MM/YY"
+                maxlength="5"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>CVV</label>
+              <input
+                type="text"
+                [(ngModel)]="cardCvv"
+                placeholder="123"
+                maxlength="4"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        @if (error()) {
+          <div class="error-message">
+            {{ error() }}
+          </div>
+        }
+      </div>
+
+      <!-- Order Summary -->
+      <div class="order-summary">
+        <h2>Order Summary</h2>
+
+        <div class="summary-items">
+          @for (item of cart.items; track item.productId) {
+            <div class="summary-item">
+              <span>Product {{ item.productId }} x {{ item.quantity }}</span>
+              <span>${{ (item.priceAtTimeOfAddition * item.quantity).toFixed(2) }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="summary-totals">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span>${{ calculateTotal(cart).toFixed(2) }}</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Shipping</span>
+            <span>$10.00</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Tax (10%)</span>
+            <span>${{ (calculateTotal(cart) * 0.1).toFixed(2) }}</span>
+          </div>
+
+          <div class="summary-row total">
+            <span>Total</span>
+            <span>${{ (calculateTotal(cart) + 10 + calculateTotal(cart) * 0.1).toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <button
+          class="btn btn-primary btn-place-order"
+          (click)="placeOrder()"
+          [disabled]="!isFormValid() || loading()"
+        >
+          @if (loading()) {
+            <span class="spinner-small"></span>
+            Processing...
+          } @else {
+            Place Order
+          }
+        </button>
+      </div>
+    </div>
+    }
+  }
+</div>

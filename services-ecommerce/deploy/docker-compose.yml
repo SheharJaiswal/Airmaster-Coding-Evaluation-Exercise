@@ -1,0 +1,226 @@
+services:
+  eureka-server:
+    image: steeltoeoss/eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - net113
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - net113
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - net113
+
+  new-ecommerce-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: Ecommerce
+    ports:
+      - "3306:3306"
+    volumes:
+      - ecommerce-mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - net113
+
+  user-service:
+    build:
+      context: ..
+      dockerfile: deploy/UserService.Dockerfile
+    restart: on-failure
+    ports:
+      - "5005:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: "http://+:80"
+      ConnectionStrings__MySql: "Server=new-ecommerce-db;Database=Ecommerce;User=root;Password=root"
+      Jwt__Key: "ThisIsMySuperSecretKeyWithAtLeast16Characters!"
+      Jwt__Issuer: "UserService"
+      Jwt__Audience: "MyApp"
+      Eureka__Client__ServiceUrl: "http://eureka-server:8761/eureka/"
+    networks:
+      - net113
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      new-ecommerce-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  product-service:
+    build:
+      context: ..
+      dockerfile: deploy/ProductService.Dockerfile
+    restart: on-failure
+    ports:
+      - "6005:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: "http://+:80"
+      ConnectionStrings__MySql: "Server=new-ecommerce-db;Database=Ecommerce;User=root;Password=root"
+      ConnectionStrings__Redis: "redis:6379"
+      Jwt__Key: "ThisIsMySuperSecretKeyWithAtLeast16Characters!"
+      Jwt__Issuer: "UserService"
+      Jwt__Audience: "MyApp"
+      Eureka__Client__ServiceUrl: "http://eureka-server:8761/eureka/"
+    networks:
+      - net113
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      new-ecommerce-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      user-service:
+        condition: service_started
+
+  cart-service:
+    build:
+      context: ..
+      dockerfile: deploy/CartService.Dockerfile
+    restart: on-failure
+    ports:
+      - "7005:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: "http://+:80"
+      ConnectionStrings__MySql: "Server=new-ecommerce-db;Database=Ecommerce;User=root;Password=root"
+      Jwt__Key: "ThisIsMySuperSecretKeyWithAtLeast16Characters!"
+      Jwt__Issuer: "UserService"
+      Jwt__Audience: "MyApp"
+      Eureka__Client__ServiceUrl: "http://eureka-server:8761/eureka/"
+    networks:
+      - net113
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      new-ecommerce-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  order-service:
+    build:
+      context: ..
+      dockerfile: deploy/OrderService.Dockerfile
+    restart: on-failure
+    ports:
+      - "8005:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: "http://+:80"
+      ConnectionStrings__MySql: "Server=new-ecommerce-db;Database=Ecommerce;User=root;Password=root"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Port: "5672"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
+      Jwt__Key: "ThisIsMySuperSecretKeyWithAtLeast16Characters!"
+      Jwt__Issuer: "UserService"
+      Jwt__Audience: "MyApp"
+      Eureka__Client__ServiceUrl: "http://eureka-server:8761/eureka/"
+    networks:
+      - net113
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      new-ecommerce-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  payment-service:
+    build:
+      context: ..
+      dockerfile: deploy/PaymentService.Dockerfile
+    restart: on-failure
+    ports:
+      - "5010:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: "http://+:80"
+      ConnectionStrings__MySql: "Server=new-ecommerce-db;Database=Ecommerce;User=root;Password=root"
+      Stripe__SecretKey: "sk_test_your_stripe_secret_key_here"
+      Jwt__Key: "ThisIsMySuperSecretKeyWithAtLeast16Characters!"
+      Jwt__Issuer: "UserService"
+      Jwt__Audience: "MyApp"
+      Eureka__Client__ServiceUrl: "http://eureka-server:8761/eureka/"
+    networks:
+      - net113
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      new-ecommerce-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  apigateway-service:
+    build:
+      context: ..
+      dockerfile: deploy/ApiGateway.Dockerfile
+    restart: on-failure
+    ports:
+      - "9005:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: "http://+:80"
+      ConnectionStrings__MySql: "Server=new-ecommerce-db;Database=Ecommerce;User=root;Password=root"
+      Jwt__Key: "ThisIsMySuperSecretKeyWithAtLeast16Characters!"
+      Jwt__Issuer: "UserService"
+      Jwt__Audience: "MyApp"
+      Eureka__Client__ServiceUrl: "http://eureka-server:8761/eureka/"
+    networks:
+      - net113
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      eureka-server:
+        condition: service_started
+
+networks:
+  net113:
+    driver: bridge
+
+volumes:
+  ecommerce-mysql_data:
+  redis_data:
+  rabbitmq_data:
